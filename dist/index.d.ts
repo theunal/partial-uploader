@@ -1,5 +1,5 @@
-declare function uploadWithPartialFile(url: string, file: any, chunkSize?: number): Promise<{
-	isSuccess: boolean;
+declare function uploadWithPartialFile(url: string, file: any, headers?: any, chunkSize?: number): Promise<{
+	success: boolean;
 	id: string;
 	message: string;
 }>;
