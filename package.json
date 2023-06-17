@@ -1,0 +1,28 @@
+{
+	"name": "partial-uploader",
+	"version": "0.0.1",
+	"description": "",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"/dist"
+	],
+	"scripts": {
+		"build": "tsc src/index.ts"
+	},
+	"author": "Yusuf Unal <theunal9@gmail.com> (https://github.com/theunal)",
+	"license": "MIT",
+	"repository": "https://github.com/theunal/partial-uploader",
+	"bugs": {
+		"url": "https://github.com/theunal/partial-uploader/issues"
+	},
+	"homepage": "https://github.com/theunal/partial-uploader#readme",
+	"keywords": [
+		"chunk",
+		"file",
+		"upload"
+	],
+	"devDependencies": {
+		"typescript": "^5.1.3"
+	}
+}
