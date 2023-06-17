@@ -37,21 +37,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadWithPartialFile = void 0;
-function uploadWithPartialFile(url, file, chunkSize) {
+var uploadWithPartialFile = function (url, file, headers, chunkSize) {
     if (chunkSize === void 0) { chunkSize = 26214400; }
-    return __awaiter(this, void 0, void 0, function () {
-        var isSuccess, id, chunks, i, chunk;
+    return __awaiter(void 0, void 0, void 0, function () {
+        var id, res, chunks, i, chunk, res;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, delay(50)];
                 case 1:
                     _a.sent();
-                    isSuccess = true;
                     id = generateGuid();
                     if (!(file.size <= chunkSize)) return [3 /*break*/, 3];
-                    return [4 /*yield*/, upload(url, file, 1, file.size, file.name, id, 1)];
+                    return [4 /*yield*/, upload(url, file, 1, file.size, file.name, id, 1, headers)];
                 case 2:
-                    isSuccess = _a.sent();
+                    res = _a.sent();
+                    if (!res)
+                        return [2 /*return*/, { success: false, id: id, message: "file could not be loaded" }];
                     return [3 /*break*/, 9];
                 case 3:
                     chunks = splitFileIntoChunks(file, chunkSize);
@@ -61,12 +62,12 @@ function uploadWithPartialFile(url, file, chunkSize) {
                     if (!(i < chunks.length + 1)) return [3 /*break*/, 8];
                     chunk = chunks[i - 1];
                     if (!chunk)
-                        return [2 /*return*/, { isSuccess: false, id: id, message: "chunk is undefined" }];
-                    return [4 /*yield*/, upload(url, chunk, chunks.length, file.size, file.name, id, i)];
+                        return [2 /*return*/, { success: false, id: id, message: "chunk is undefined" }];
+                    return [4 /*yield*/, upload(url, chunks[i - 1], chunks.length, file.size, file.name, id, i, headers)];
                 case 5:
-                    isSuccess = _a.sent();
-                    if (!isSuccess)
-                        return [3 /*break*/, 8];
+                    res = _a.sent();
+                    if (!res)
+                        return [2 /*return*/, { success: false, id: id, message: "file could not be loaded" }];
                     return [4 /*yield*/, delay(550)];
                 case 6:
                     _a.sent();
@@ -79,44 +80,52 @@ function uploadWithPartialFile(url, file, chunkSize) {
                     _a.label = 9;
                 case 9:
                     ;
-                    return [2 /*return*/, { isSuccess: isSuccess, id: id, message: "file uploaded successfully" }];
+                    return [2 /*return*/, { success: true, id: id, message: "file uploaded successfully" }];
             }
         });
     });
-}
+};
 exports.uploadWithPartialFile = uploadWithPartialFile;
-var upload = function (url, chunk, chunksLength, fileSize, filename, fileGuid, index) { return __awaiter(void 0, void 0, void 0, function () {
-    var formData, isDone, isSuccess, res;
+var upload = function (url, chunk, chunksLength, fileSize, filename, fileGuid, index, headers) { return __awaiter(void 0, void 0, void 0, function () {
+    var formData, isDone;
+    return __generator(this, function (_a) {
+        formData = new FormData();
+        formData.append('file', chunk, "".concat(filename, "_chunk_").concat(index));
+        formData.append('fileGuid', fileGuid);
+        isDone = chunksLength === index;
+        formData.append('isDone', isDone.toString());
+        formData.append('totalSize', fileSize.toString());
+        formData.append('totalChunks', chunksLength.toString());
+        formData.append('filename', filename);
+        return [2 /*return*/, getRes(url, formData, headers)];
+    });
+}); };
+var getRes = function (url, formData, headers) { return __awaiter(void 0, void 0, void 0, function () {
+    var res, e_1, res;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                formData = new FormData();
-                formData.append('file', chunk, "".concat(filename, "_chunk_").concat(index));
-                formData.append('fileGuid', fileGuid);
-                isDone = chunksLength === index;
-                formData.append('isDone', isDone.toString());
-                formData.append('totalSize', fileSize.toString());
-                formData.append('totalChunks', chunksLength.toString());
-                formData.append('filename', filename);
-                isSuccess = true;
-                return [4 /*yield*/, uploadSubscribe(url, formData)];
+                _a.trys.push([0, 2, , 5]);
+                return [4 /*yield*/, uploadSubscribe(url, formData, headers)];
             case 1:
                 res = _a.sent();
-                if (!(res.status === 406 || res.status === 401)) return [3 /*break*/, 2];
-                isSuccess = false;
+                if (res.status === 406 || res.status === 401)
+                    return [2 /*return*/, false];
                 return [3 /*break*/, 5];
-            case 2: return [4 /*yield*/, delay(500)];
+            case 2:
+                e_1 = _a.sent();
+                return [4 /*yield*/, delay(500)];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, uploadSubscribe(url, formData)];
+                return [4 /*yield*/, uploadSubscribe(url, formData, headers)];
             case 4:
                 res = _a.sent();
                 if (!res.ok)
-                    isSuccess = false;
-                _a.label = 5;
+                    return [2 /*return*/, false];
+                return [3 /*break*/, 5];
             case 5:
                 ;
-                return [2 /*return*/, isSuccess];
+                return [2 /*return*/, true];
         }
     });
 }); };
@@ -126,9 +135,9 @@ var delay = function (ms) { return __awaiter(void 0, void 0, void 0, function ()
         case 1: return [2 /*return*/, _a.sent()];
     }
 }); }); };
-var uploadSubscribe = function (url, formData) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+var uploadSubscribe = function (url, formData, headers) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
     switch (_a.label) {
-        case 0: return [4 /*yield*/, fetch(url, { method: 'POST', body: formData })];
+        case 0: return [4 /*yield*/, fetch(url, { method: 'POST', body: formData, headers: headers ? headers : {} })];
         case 1: return [2 /*return*/, (_a.sent())];
     }
 }); }); };
