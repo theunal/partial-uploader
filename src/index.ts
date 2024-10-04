@@ -6,23 +6,22 @@ const uploadWithPartialFile = async (url: string, file: any, headers?: any, chun
 	await delay(50);
 	const id = generateGuid();
 
-	if (file.size <= chunkSize)  // küçük dosya yükleme
-	{
-		let res = await upload(url, file, 1, file.size, file.name, id, 1, headers);
+	if (file.size <= chunkSize) {
+		// small file
+		let res = await upload(url, file, 1, file.size, file.name, id, 0, headers);
 		if (!res)
 			return { success: false, id, message: "file could not be loaded" };
 	}
 	else {
-		// büyük dosya yükleme - parçalı
+		// big file
 		const chunks = splitFileIntoChunks(file, chunkSize);
 
-		// Parçaları sunucuya gönder
-		for (let i = 1; i < chunks.length + 1; i++) {
-			let chunk = chunks[i - 1];
+		for (let i = 0; i < chunks.length; i++) {
+			let chunk = chunks[i];
 			if (!chunk)
 				return { success: false, id, message: "chunk is undefined" };
 
-			let res = await upload(url, chunks[i - 1], chunks.length, file.size, file.name, id, i, headers);
+			let res = await upload(url, chunk, chunks.length, file.size, file.name, id, i, headers);
 			if (!res)
 				return { success: false, id, message: "file could not be loaded" };
 
@@ -38,7 +37,7 @@ const upload = async (url: string, chunk: Blob, chunksLength: number, fileSize: 
 	let formData = new FormData();
 	formData.append('file', chunk, `${filename}_chunk_${index}`);
 	formData.append('fileGuid', fileGuid);
-	let isDone = chunksLength === index;
+	let isDone = chunksLength === index + 1;
 	formData.append('isDone', isDone.toString());
 	formData.append('totalSize', fileSize.toString());
 	formData.append('totalChunks', chunksLength.toString());
