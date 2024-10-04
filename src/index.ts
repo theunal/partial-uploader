@@ -62,7 +62,9 @@ const getRes = async (url: string, formData: FormData, headers?: any) => {
 	return true;
 };
 
-const delay = async (ms: number) => await new Promise(f => setTimeout(f, ms));
+const delay =  async (ms: number) => {
+	await new Promise(f => setTimeout(f, ms));
+};
 
 const uploadSubscribe = async (url: string, formData: FormData, headers?: any) =>
 	(await fetch(url, { method: 'POST', body: formData, headers: headers ? headers : {} }));

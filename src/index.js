@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function () { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function () { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -86,75 +86,65 @@ var uploadWithPartialFile = function (url, file, headers, chunkSize) {
     });
 };
 exports.uploadWithPartialFile = uploadWithPartialFile;
-var upload = function (url, chunk, chunksLength, fileSize, filename, fileGuid, index, headers) {
-    return __awaiter(void 0, void 0, void 0, function () {
-        var formData, isDone;
-        return __generator(this, function (_a) {
-            formData = new FormData();
-            formData.append('file', chunk, "".concat(filename, "_chunk_").concat(index));
-            formData.append('fileGuid', fileGuid);
-            isDone = chunksLength === index + 1;
-            formData.append('isDone', isDone.toString());
-            formData.append('totalSize', fileSize.toString());
-            formData.append('totalChunks', chunksLength.toString());
-            formData.append('filename', filename);
-            return [2 /*return*/, getRes(url, formData, headers)];
-        });
+var upload = function (url, chunk, chunksLength, fileSize, filename, fileGuid, index, headers) { return __awaiter(void 0, void 0, void 0, function () {
+    var formData, isDone;
+    return __generator(this, function (_a) {
+        formData = new FormData();
+        formData.append('file', chunk, "".concat(filename, "_chunk_").concat(index));
+        formData.append('fileGuid', fileGuid);
+        isDone = chunksLength === index + 1;
+        formData.append('isDone', isDone.toString());
+        formData.append('totalSize', fileSize.toString());
+        formData.append('totalChunks', chunksLength.toString());
+        formData.append('filename', filename);
+        return [2 /*return*/, getRes(url, formData, headers)];
     });
-};
-var getRes = function (url, formData, headers) {
-    return __awaiter(void 0, void 0, void 0, function () {
-        var res, e_1, res;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 5]);
-                    return [4 /*yield*/, uploadSubscribe(url, formData, headers)];
-                case 1:
-                    res = _a.sent();
-                    if (res.status === 406 || res.status === 401)
-                        return [2 /*return*/, false];
-                    return [3 /*break*/, 5];
-                case 2:
-                    e_1 = _a.sent();
-                    return [4 /*yield*/, delay(500)];
-                case 3:
-                    _a.sent();
-                    return [4 /*yield*/, uploadSubscribe(url, formData, headers)];
-                case 4:
-                    res = _a.sent();
-                    if (!res.ok)
-                        return [2 /*return*/, false];
-                    return [3 /*break*/, 5];
-                case 5:
-                    ;
-                    return [2 /*return*/, true];
-            }
-        });
+}); };
+var getRes = function (url, formData, headers) { return __awaiter(void 0, void 0, void 0, function () {
+    var res, e_1, res;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 5]);
+                return [4 /*yield*/, uploadSubscribe(url, formData, headers)];
+            case 1:
+                res = _a.sent();
+                if (res.status === 406 || res.status === 401)
+                    return [2 /*return*/, false];
+                return [3 /*break*/, 5];
+            case 2:
+                e_1 = _a.sent();
+                return [4 /*yield*/, delay(500)];
+            case 3:
+                _a.sent();
+                return [4 /*yield*/, uploadSubscribe(url, formData, headers)];
+            case 4:
+                res = _a.sent();
+                if (!res.ok)
+                    return [2 /*return*/, false];
+                return [3 /*break*/, 5];
+            case 5:
+                ;
+                return [2 /*return*/, true];
+        }
     });
-};
-var delay = function (ms) {
-    return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, new Promise(function (f) { return setTimeout(f, ms); })];
-                case 1:
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
+}); };
+var delay = function (ms) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, new Promise(function (f) { return setTimeout(f, ms); })];
+            case 1:
+                _a.sent();
+                return [2 /*return*/];
+        }
     });
-};
-var uploadSubscribe = function (url, formData, headers) {
-    return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, fetch(url, { method: 'POST', body: formData, headers: headers ? headers : {} })];
-                case 1: return [2 /*return*/, (_a.sent())];
-            }
-        });
-    });
-};
+}); };
+var uploadSubscribe = function (url, formData, headers) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+    switch (_a.label) {
+        case 0: return [4 /*yield*/, fetch(url, { method: 'POST', body: formData, headers: headers ? headers : {} })];
+        case 1: return [2 /*return*/, (_a.sent())];
+    }
+}); }); };
 var splitFileIntoChunks = function (file, chunkSize) {
     var chunks = [];
     var start = 0;
