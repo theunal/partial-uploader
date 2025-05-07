@@ -42,6 +42,7 @@ const upload = async (url: string, chunk: Blob, chunksLength: number, fileSize: 
 	formData.append('totalSize', fileSize.toString());
 	formData.append('totalChunks', chunksLength.toString());
 	formData.append('filename', filename);
+	formData.append('index', index.toString());
 
 	return getRes(url, formData, headers);
 };
