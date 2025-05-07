@@ -1,0 +1,5 @@
+npx tsc
+
+npm login 
+
+npm publish

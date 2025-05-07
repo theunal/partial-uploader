@@ -63,7 +63,7 @@ const getRes = async (url: string, formData: FormData, headers?: any) => {
 	return true;
 };
 
-const delay =  async (ms: number) => {
+const delay = async (ms: number) => {
 	await new Promise(f => setTimeout(f, ms));
 };
 
