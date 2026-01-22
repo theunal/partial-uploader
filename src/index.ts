@@ -1,97 +1,111 @@
-const uploadWithPartialFile = async (url: string, file: any, headers?: any, chunkSize: number = 26214400): Promise<{
+type RefreshResult = { headers?: any; url?: string };
+type UnauthorizedCallback = (error: Response) => Promise<RefreshResult | null>;
+
+const uploadWithPartialFile = async (
+	url: string,
+	file: any,
+	headers: any = {},
+	chunkSize: number = 26214400,
+	delay_number: number = 50,
+	concurrency: number = 1,
+	onUnauthorized?: UnauthorizedCallback
+): Promise<{
 	success: boolean;
 	id: string;
 	message: string;
 }> => {
-	await delay(50);
+	// İstek bilgilerini dinamik tutmak için bir context oluşturuyoruz
+	const sharedContext = {
+		url: url,
+		headers: { ...headers }
+	};
+
+	await delay(delay_number);
 	const id = generateGuid();
+	const fileName = file.name || 'file';
+	const totalSize = file.size;
+	const totalChunks = Math.ceil(totalSize / chunkSize) || 1;
 
-	if (file.size <= chunkSize) {
-		// small file
-		let res = await upload(url, file, 1, file.size, file.name, id, 0, headers);
-		if (!res)
-			return { success: false, id, message: "file could not be loaded" };
-	}
-	else {
-		// big file
-		const chunks = splitFileIntoChunks(file, chunkSize);
-
-		for (let i = 0; i < chunks.length; i++) {
-			let chunk = chunks[i];
-			if (!chunk)
-				return { success: false, id, message: "chunk is undefined" };
-
-			let res = await upload(url, chunk, chunks.length, file.size, file.name, id, i, headers);
-			if (!res)
-				return { success: false, id, message: "file could not be loaded" };
-
-			await delay(550);
-		};
-	};
-
-	return { success: true, id, message: "file uploaded successfully" };
-};
-
-const upload = async (url: string, chunk: Blob, chunksLength: number, fileSize: number,
-	filename: string, fileGuid: string, index: number, headers?: any) => {
-	let formData = new FormData();
-	formData.append('file', chunk, `${filename}_chunk_${index}`);
-	formData.append('fileGuid', fileGuid);
-	let isDone = chunksLength === index + 1;
-	formData.append('isDone', isDone.toString());
-	formData.append('totalSize', fileSize.toString());
-	formData.append('totalChunks', chunksLength.toString());
-	formData.append('filename', filename);
-	formData.append('index', index.toString());
-
-	return getRes(url, formData, headers);
-};
-
-const getRes = async (url: string, formData: FormData, headers?: any) => {
-	try {
-		let res = await uploadSubscribe(url, formData, headers);
-		if (res.status === 406 || res.status === 401)
-			return false;
-	}
-	catch (e) {
-		await delay(500);
-		let res = await uploadSubscribe(url, formData, headers);
-		if (!res.ok)
-			return false;
-	};
-
-	return true;
-};
-
-const delay = async (ms: number) => {
-	await new Promise(f => setTimeout(f, ms));
-};
-
-const uploadSubscribe = async (url: string, formData: FormData, headers?: any) =>
-	(await fetch(url, { method: 'POST', body: formData, headers: headers ? headers : {} }));
-
-const splitFileIntoChunks = (file: File, chunkSize: number) => {
-	const chunks: Blob[] = [];
-	let start = 0;
-	while (start < file.size) {
-		const end = Math.min(start + chunkSize, file.size);
+	const uploadChunk = async (index: number) => {
+		const start = index * chunkSize;
+		const end = Math.min(start + chunkSize, totalSize);
 		const chunk = file.slice(start, end);
-		chunks.push(chunk);
-		start = end;
+
+		for (let retry = 0; retry < 3; retry++) {
+			try {
+				const formData = new FormData();
+				formData.append('file', chunk, `${fileName}_chunk_${index}`);
+				formData.append('fileGuid', id);
+				formData.append('isDone', (index === totalChunks - 1).toString());
+				formData.append('totalSize', totalSize.toString());
+				formData.append('totalChunks', totalChunks.toString());
+				formData.append('filename', fileName);
+				formData.append('index', index.toString());
+
+				const res = await fetch(sharedContext.url, {
+					method: 'POST',
+					body: formData,
+					headers: sharedContext.headers
+				});
+
+				// Token bitmişse (401) callback'i çağır
+				if (res.status === 401 && onUnauthorized) {
+					const refreshData = await onUnauthorized(res);
+					if (refreshData) {
+						if (refreshData.headers) {
+							sharedContext.headers = { ...sharedContext.headers, ...refreshData.headers };
+						}
+						if (refreshData.url) {
+							sharedContext.url = refreshData.url;
+						}
+						// Token yenilendi, bu retry hakkından düşmeden aynı parçayı tekrar dene
+						retry--;
+						continue;
+					}
+				}
+
+				if (res.ok) return true;
+
+				// Diğer hatalarda (500 vb.) retry devam etsin
+				if (retry === 2) throw new Error(`Server error: ${res.status}`);
+
+			} catch (e) {
+				if (retry === 2) throw e;
+				// Ağ hatalarında bekleme süresini artır
+				await delay(delay_number + (retry + 1) * 1000);
+			}
+		}
+		return false;
 	};
 
-	return chunks;
+	try {
+		const queue = Array.from({ length: totalChunks }, (_, i) => i);
+
+		const workers = Array(Math.min(concurrency, totalChunks)).fill(null).map(async () => {
+			while (queue.length > 0) {
+				const index = queue.shift()!;
+				const success = await uploadChunk(index);
+				if (!success) throw new Error("file could not be loaded");
+				if (delay_number > 0) await delay(delay_number);
+			}
+		});
+
+		await Promise.all(workers);
+		return { success: true, id, message: "file uploaded successfully" };
+	} catch (e: any) {
+		return { success: false, id, message: e.message || "file could not be loaded" };
+	}
 };
+
+const delay = (ms: number) => new Promise(f => setTimeout(f, ms));
 
 const generateGuid = () => {
-	var chars = '0123456789abcdef';
-	var guid = '';
-
-	for (var i = 0; i < 40; i++) {
-		var randomIndex = Math.floor(Math.random() * chars.length);
+	const chars = '0123456789abcdef';
+	let guid = '';
+	for (let i = 0; i < 40; i++) {
+		const randomIndex = Math.floor(Math.random() * chars.length);
 		guid += chars.charAt(randomIndex);
-	};
-
+	}
 	return guid;
 };
 
