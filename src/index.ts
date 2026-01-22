@@ -1,6 +1,15 @@
 type RefreshResult = { headers?: any; url?: string };
 type UnauthorizedCallback = (error: Response) => Promise<RefreshResult | null>;
 
+export interface PartialUploadResponse {
+	success: boolean;
+	message: string;
+	statusCode: number;
+	data?: {
+		id: string;
+	}
+}
+
 const uploadWithPartialFile = async (
 	url: string,
 	file: any,
@@ -9,14 +18,7 @@ const uploadWithPartialFile = async (
 	delay_number: number = 50,
 	concurrency: number = 1,
 	onUnauthorized?: UnauthorizedCallback
-): Promise<{
-	success: boolean;
-	message: string;
-	statusCode: number;
-	data?: {
-		id: string;
-	}
-}> => {
+): Promise<PartialUploadResponse> => {
 	// İstek bilgilerini dinamik tutmak için bir context oluşturuyoruz
 	const sharedContext = {
 		url: url,
@@ -109,10 +111,7 @@ const uploadWithPartialFile = async (
 		return {
 			success: false,
 			message: e.message || "file could not be loaded",
-			statusCode: lastStatusCode,
-			data: {
-				id
-			}
+			statusCode: lastStatusCode
 		};
 	}
 };
