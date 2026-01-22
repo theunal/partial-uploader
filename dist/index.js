@@ -54,7 +54,7 @@ var uploadWithPartialFile = function (url, file, headers, chunkSize, delay_numbe
     if (delay_number === void 0) { delay_number = 50; }
     if (concurrency === void 0) { concurrency = 1; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var sharedContext, id, fileName, totalSize, totalChunks, uploadChunk, queue_1, workers, e_1;
+        var sharedContext, id, fileName, totalSize, totalChunks, lastStatusCode, uploadChunk, queue_1, workers, e_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -69,6 +69,7 @@ var uploadWithPartialFile = function (url, file, headers, chunkSize, delay_numbe
                     fileName = file.name || 'file';
                     totalSize = file.size;
                     totalChunks = Math.ceil(totalSize / chunkSize) || 1;
+                    lastStatusCode = 200;
                     uploadChunk = function (index) { return __awaiter(void 0, void 0, void 0, function () {
                         var start, end, chunk, retry, formData, res, refreshData, e_2;
                         return __generator(this, function (_a) {
@@ -99,6 +100,7 @@ var uploadWithPartialFile = function (url, file, headers, chunkSize, delay_numbe
                                         })];
                                 case 3:
                                     res = _a.sent();
+                                    lastStatusCode = res.status;
                                     if (!(res.status === 401 && onUnauthorized)) return [3 /*break*/, 5];
                                     return [4 /*yield*/, onUnauthorized(res)];
                                 case 4:
@@ -168,10 +170,24 @@ var uploadWithPartialFile = function (url, file, headers, chunkSize, delay_numbe
                     return [4 /*yield*/, Promise.all(workers)];
                 case 3:
                     _a.sent();
-                    return [2 /*return*/, { success: true, id: id, message: "file uploaded successfully" }];
+                    return [2 /*return*/, {
+                            success: true,
+                            message: "file uploaded successfully",
+                            statusCode: lastStatusCode,
+                            data: {
+                                id: id
+                            }
+                        }];
                 case 4:
                     e_1 = _a.sent();
-                    return [2 /*return*/, { success: false, id: id, message: e_1.message || "file could not be loaded" }];
+                    return [2 /*return*/, {
+                            success: false,
+                            message: e_1.message || "file could not be loaded",
+                            statusCode: lastStatusCode,
+                            data: {
+                                id: id
+                            }
+                        }];
                 case 5: return [2 /*return*/];
             }
         });

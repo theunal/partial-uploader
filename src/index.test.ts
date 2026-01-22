@@ -26,6 +26,8 @@ describe('uploadWithPartialFile', () => {
         const result = await resultPromise;
 
         expect(result.success).toBe(true);
+        expect(result.statusCode).toBe(200);
+        expect(result.data?.id).toBeDefined();
         expect(fetch).toHaveBeenCalledTimes(1);
 
         const formData = (vi.mocked(fetch).mock.calls[0][1]?.body as FormData);
@@ -47,6 +49,8 @@ describe('uploadWithPartialFile', () => {
         const result = await resultPromise;
 
         expect(result.success).toBe(true);
+        expect(result.statusCode).toBe(200);
+        expect(result.data?.id).toBeDefined();
         expect(fetch).toHaveBeenCalledTimes(3);
     });
 
@@ -63,6 +67,8 @@ describe('uploadWithPartialFile', () => {
         const result = await resultPromise;
 
         expect(result.success).toBe(true);
+        expect(result.statusCode).toBe(200);
+        expect(result.data?.id).toBeDefined();
         expect(fetch).toHaveBeenCalledTimes(2);
     });
 
@@ -82,6 +88,8 @@ describe('uploadWithPartialFile', () => {
 
         expect(onUnauthorized).toHaveBeenCalled();
         expect(result.success).toBe(true);
+        expect(result.statusCode).toBe(200);
+        expect(result.data?.id).toBeDefined();
         expect(fetch).toHaveBeenCalledTimes(2);
 
         // Check if second call used new headers
@@ -98,6 +106,8 @@ describe('uploadWithPartialFile', () => {
         const result = await resultPromise;
 
         expect(result.success).toBe(false);
+        expect(result.statusCode).toBe(200); // defaults to 200 if fetch throws before any response
+        expect(result.data?.id).toBeDefined();
         expect(fetch).toHaveBeenCalledTimes(3); // Retry limit is 3 in code
     });
 
@@ -112,6 +122,8 @@ describe('uploadWithPartialFile', () => {
         const result = await resultPromise;
 
         expect(result.success).toBe(true);
+        expect(result.statusCode).toBe(200);
+        expect(result.data?.id).toBeDefined();
         expect(fetch).toHaveBeenCalledTimes(10);
     });
 });

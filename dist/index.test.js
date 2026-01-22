@@ -48,9 +48,9 @@ var index_1 = require("./index");
     });
     (0, vitest_1.it)('should upload a small file in a single chunk successfully', function () { return __awaiter(void 0, void 0, void 0, function () {
         var resultPromise, result, formData;
-        var _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var _a, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     fetch.mockResolvedValue({
                         ok: true,
@@ -61,13 +61,15 @@ var index_1 = require("./index");
                     return [4 /*yield*/, vitest_1.vi.runAllTimersAsync()];
                 case 1:
                     // Fast-forward any delays
-                    _b.sent();
+                    _c.sent();
                     return [4 /*yield*/, resultPromise];
                 case 2:
-                    result = _b.sent();
+                    result = _c.sent();
                     (0, vitest_1.expect)(result.success).toBe(true);
+                    (0, vitest_1.expect)(result.statusCode).toBe(200);
+                    (0, vitest_1.expect)((_a = result.data) === null || _a === void 0 ? void 0 : _a.id).toBeDefined();
                     (0, vitest_1.expect)(fetch).toHaveBeenCalledTimes(1);
-                    formData = (_a = vitest_1.vi.mocked(fetch).mock.calls[0][1]) === null || _a === void 0 ? void 0 : _a.body;
+                    formData = (_b = vitest_1.vi.mocked(fetch).mock.calls[0][1]) === null || _b === void 0 ? void 0 : _b.body;
                     (0, vitest_1.expect)(formData.get('isDone')).toBe('true');
                     (0, vitest_1.expect)(formData.get('totalChunks')).toBe('1');
                     return [2 /*return*/];
@@ -76,8 +78,9 @@ var index_1 = require("./index");
     }); });
     (0, vitest_1.it)('should upload a large file in multiple chunks', function () { return __awaiter(void 0, void 0, void 0, function () {
         var largeFile, resultPromise, result;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     fetch.mockResolvedValue({
                         ok: true,
@@ -87,11 +90,13 @@ var index_1 = require("./index");
                     resultPromise = (0, index_1.uploadWithPartialFile)(mockUrl, largeFile, {}, 5, 0, 1);
                     return [4 /*yield*/, vitest_1.vi.runAllTimersAsync()];
                 case 1:
-                    _a.sent();
+                    _b.sent();
                     return [4 /*yield*/, resultPromise];
                 case 2:
-                    result = _a.sent();
+                    result = _b.sent();
                     (0, vitest_1.expect)(result.success).toBe(true);
+                    (0, vitest_1.expect)(result.statusCode).toBe(200);
+                    (0, vitest_1.expect)((_a = result.data) === null || _a === void 0 ? void 0 : _a.id).toBeDefined();
                     (0, vitest_1.expect)(fetch).toHaveBeenCalledTimes(3);
                     return [2 /*return*/];
             }
@@ -99,8 +104,9 @@ var index_1 = require("./index");
     }); });
     (0, vitest_1.it)('should retry on network error and succeed', function () { return __awaiter(void 0, void 0, void 0, function () {
         var resultPromise, result;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     fetch
                         .mockRejectedValueOnce(new Error('Network error'))
@@ -110,11 +116,13 @@ var index_1 = require("./index");
                     return [4 /*yield*/, vitest_1.vi.runAllTimersAsync()];
                 case 1:
                     // First attempt fails, wait for delay
-                    _a.sent();
+                    _b.sent();
                     return [4 /*yield*/, resultPromise];
                 case 2:
-                    result = _a.sent();
+                    result = _b.sent();
                     (0, vitest_1.expect)(result.success).toBe(true);
+                    (0, vitest_1.expect)(result.statusCode).toBe(200);
+                    (0, vitest_1.expect)((_a = result.data) === null || _a === void 0 ? void 0 : _a.id).toBeDefined();
                     (0, vitest_1.expect)(fetch).toHaveBeenCalledTimes(2);
                     return [2 /*return*/];
             }
@@ -122,9 +130,9 @@ var index_1 = require("./index");
     }); });
     (0, vitest_1.it)('should refresh token on 401 and retry successfully', function () { return __awaiter(void 0, void 0, void 0, function () {
         var onUnauthorized, resultPromise, result, secondCallHeaders;
-        var _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var _a, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     fetch
                         .mockResolvedValueOnce({ ok: false, status: 401 }) // First attempt: 401
@@ -135,14 +143,16 @@ var index_1 = require("./index");
                     resultPromise = (0, index_1.uploadWithPartialFile)(mockUrl, mockFile, { 'Authorization': 'Bearer old' }, 1024, 0, 1, onUnauthorized);
                     return [4 /*yield*/, vitest_1.vi.runAllTimersAsync()];
                 case 1:
-                    _b.sent();
+                    _c.sent();
                     return [4 /*yield*/, resultPromise];
                 case 2:
-                    result = _b.sent();
+                    result = _c.sent();
                     (0, vitest_1.expect)(onUnauthorized).toHaveBeenCalled();
                     (0, vitest_1.expect)(result.success).toBe(true);
+                    (0, vitest_1.expect)(result.statusCode).toBe(200);
+                    (0, vitest_1.expect)((_a = result.data) === null || _a === void 0 ? void 0 : _a.id).toBeDefined();
                     (0, vitest_1.expect)(fetch).toHaveBeenCalledTimes(2);
-                    secondCallHeaders = (_a = vitest_1.vi.mocked(fetch).mock.calls[1][1]) === null || _a === void 0 ? void 0 : _a.headers;
+                    secondCallHeaders = (_b = vitest_1.vi.mocked(fetch).mock.calls[1][1]) === null || _b === void 0 ? void 0 : _b.headers;
                     (0, vitest_1.expect)(secondCallHeaders['Authorization']).toBe('Bearer new-token');
                     return [2 /*return*/];
             }
@@ -150,18 +160,21 @@ var index_1 = require("./index");
     }); });
     (0, vitest_1.it)('should fail after maximum retries', function () { return __awaiter(void 0, void 0, void 0, function () {
         var resultPromise, result;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     fetch.mockRejectedValue(new Error('Persistent error'));
                     resultPromise = (0, index_1.uploadWithPartialFile)(mockUrl, mockFile, {}, 1024, 0);
                     return [4 /*yield*/, vitest_1.vi.runAllTimersAsync()];
                 case 1:
-                    _a.sent();
+                    _b.sent();
                     return [4 /*yield*/, resultPromise];
                 case 2:
-                    result = _a.sent();
+                    result = _b.sent();
                     (0, vitest_1.expect)(result.success).toBe(false);
+                    (0, vitest_1.expect)(result.statusCode).toBe(200); // defaults to 200 if fetch throws before any response
+                    (0, vitest_1.expect)((_a = result.data) === null || _a === void 0 ? void 0 : _a.id).toBeDefined();
                     (0, vitest_1.expect)(fetch).toHaveBeenCalledTimes(3); // Retry limit is 3 in code
                     return [2 /*return*/];
             }
@@ -169,19 +182,22 @@ var index_1 = require("./index");
     }); });
     (0, vitest_1.it)('should handle concurrency correctly', function () { return __awaiter(void 0, void 0, void 0, function () {
         var largeFile, resultPromise, result;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     fetch.mockResolvedValue({ ok: true, status: 200 });
                     largeFile = new File(['a'.repeat(100)], 'concurrency.txt');
                     resultPromise = (0, index_1.uploadWithPartialFile)(mockUrl, largeFile, {}, 10, 0, 5);
                     return [4 /*yield*/, vitest_1.vi.runAllTimersAsync()];
                 case 1:
-                    _a.sent();
+                    _b.sent();
                     return [4 /*yield*/, resultPromise];
                 case 2:
-                    result = _a.sent();
+                    result = _b.sent();
                     (0, vitest_1.expect)(result.success).toBe(true);
+                    (0, vitest_1.expect)(result.statusCode).toBe(200);
+                    (0, vitest_1.expect)((_a = result.data) === null || _a === void 0 ? void 0 : _a.id).toBeDefined();
                     (0, vitest_1.expect)(fetch).toHaveBeenCalledTimes(10);
                     return [2 /*return*/];
             }

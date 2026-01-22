@@ -11,8 +11,11 @@ const uploadWithPartialFile = async (
 	onUnauthorized?: UnauthorizedCallback
 ): Promise<{
 	success: boolean;
-	id: string;
 	message: string;
+	statusCode: number;
+	data?: {
+		id: string;
+	}
 }> => {
 	// İstek bilgilerini dinamik tutmak için bir context oluşturuyoruz
 	const sharedContext = {
@@ -25,6 +28,7 @@ const uploadWithPartialFile = async (
 	const fileName = file.name || 'file';
 	const totalSize = file.size;
 	const totalChunks = Math.ceil(totalSize / chunkSize) || 1;
+	let lastStatusCode = 200;
 
 	const uploadChunk = async (index: number) => {
 		const start = index * chunkSize;
@@ -47,6 +51,8 @@ const uploadWithPartialFile = async (
 					body: formData,
 					headers: sharedContext.headers
 				});
+
+				lastStatusCode = res.status;
 
 				// Token bitmişse (401) callback'i çağır
 				if (res.status === 401 && onUnauthorized) {
@@ -91,9 +97,23 @@ const uploadWithPartialFile = async (
 		});
 
 		await Promise.all(workers);
-		return { success: true, id, message: "file uploaded successfully" };
+		return {
+			success: true,
+			message: "file uploaded successfully",
+			statusCode: lastStatusCode,
+			data: {
+				id
+			}
+		};
 	} catch (e: any) {
-		return { success: false, id, message: e.message || "file could not be loaded" };
+		return {
+			success: false,
+			message: e.message || "file could not be loaded",
+			statusCode: lastStatusCode,
+			data: {
+				id
+			}
+		};
 	}
 };
 

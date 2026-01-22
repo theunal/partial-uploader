@@ -4,3 +4,6 @@ hata verebilir siktiret
 npm login 
 
 npm publish
+
+## test
+npx vitest run src/index.test.ts
