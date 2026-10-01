@@ -225,10 +225,11 @@ await uploadWithPartialFile('/upload', file, { Authorization: 'Bearer x' }, 5242
 
 ## Geliştirme
 
+Geliştirme araçları modern Node gerektirir (**Node ≥ 22.12**): `vitest 5` daha eski sürümlerde çalışmıyor. Kütüphanenin **çalışma zamanı** ise `engines` gereksinimi olan Node 18'den itibaren her yerde çalışır — CI'da bunu ayrı bir smoke test job'ı doğruluyor.
+
 ```sh
 npm install
-npm run typecheck        # tsc
-npm run lint             # eslint
+npm run typecheck        # tsc (strict + noUncheckedIndexedAccess)
 npm run format           # prettier --write
 npm test                 # vitest
 npm run test:coverage    # vitest + coverage
@@ -236,6 +237,10 @@ npm run build            # dist/esm + dist/cjs
 npm run verify:package   # derle + paket yüklemesini doğrula
 npm run ci               # hepsi
 ```
+
+Tip güvenliği `tsconfig.json` ile sağlanır: `strict`, `noUncheckedIndexedAccess`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noFallthroughCasesInSwitch` açıktır.
+
+> ESLint bilinçli olarak kullanılmıyor: `typescript-eslint` TypeScript 7'yi desteklemiyor ve tip-bazlı lint şu anda ancak TypeScript 5.x ile mümkün. Kullanılmak istenirse `typescript@5.9.x`'e sabitlenip `eslint` + `typescript-eslint` geri eklenmelidir.
 
 ## Sürüm geçişleri
 

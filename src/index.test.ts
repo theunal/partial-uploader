@@ -784,6 +784,49 @@ describe('uploadWithPartialFile', () => {
 				code: 'INVALID_INPUT'
 			});
 		});
+
+		it('AbortSignal.any yoksa elle birlestirmeye duser', async () => {
+			// Node 18 / eski tarayicilarda AbortSignal.any bulunmuyor; kod bu
+			// durumda crash etmemeli, kendi sinyalini uretmeli.
+			const RealAbortSignal = globalThis.AbortSignal;
+			// bilerek `any` metodu olmayan bir sarmalayıcı
+			vi.stubGlobal('AbortSignal', { timeout: (ms: number) => RealAbortSignal.timeout(ms) });
+
+			(fetch as any).mockResolvedValue(ok());
+			const result = await uploadWithPartialFile(mockUrl, smallFile(), { timeout: 5000 });
+
+			expect(result.success).toBe(true);
+
+			const sent = initAt(0).signal as AbortSignal;
+			expect(sent).toBeInstanceOf(RealAbortSignal);
+			expect(sent.aborted).toBe(false);
+			expect(typeof sent.addEventListener).toBe('function');
+		});
+
+		it("fallback yolu kullanici abort'u ile tetiklenir", async () => {
+			const RealAbortSignal = globalThis.AbortSignal;
+			vi.stubGlobal('AbortSignal', { timeout: (ms: number) => RealAbortSignal.timeout(ms) });
+
+			const controller = new AbortController();
+			let observedAborted: boolean | undefined;
+
+			(fetch as any).mockImplementation(async (_url: any, init: any) => {
+				controller.abort();
+				observedAborted = init.signal.aborted;
+				return ok();
+			});
+
+			const result = await uploadWithPartialFile(mockUrl, manyChunksFile(), {
+				chunkSize: 25,
+				concurrency: 1,
+				timeout: 60000,
+				signal: controller.signal
+			});
+
+			// Elle birlestirilen sinyal, kullanici sinyali tetiklenince de abort olmali
+			expect(observedAborted).toBe(true);
+			expect(result.code).toBe('ABORTED');
+		});
 	});
 
 	describe('sunucu yanıtı', () => {
