@@ -10,6 +10,7 @@ import { existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { listPackedFiles } from './lib/pack.mjs';
 
 const root = process.cwd();
 const pkg = createRequire(import.meta.url)('../package.json');
@@ -70,8 +71,7 @@ uploadWithPartialFile('/u', { size: 1, slice() {} }, { concurrency: 0 }).then(
 	console.log(`  ${referenced.size} exported path doğrulandı`);
 
 	// ---- Yayınlanan tarball test dosyalarını içermemeli ----
-	const packJson = execFileSync('npm', ['pack', '--dry-run', '--json'], { cwd: root, encoding: 'utf8' });
-	const packed = JSON.parse(packJson)[0].files.map((f) => f.path);
+	const packed = listPackedFiles(root);
 	const leaked = packed.filter((f) => /\.(test|spec)\.[cm]?[jt]sx?$/.test(f));
 
 	assert.equal(leaked.length, 0, `paket içinde test dosyası var: ${leaked.join(', ')}`);

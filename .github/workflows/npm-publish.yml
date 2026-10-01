@@ -51,6 +51,11 @@ jobs:
             - name: Build and verify package
               run: npm run verify:package
 
+            # `npm pack --json` çıktı şeması npm sürümlerinde değişti;
+            # parser'ın her iki şemayı da kabul ettiğini doğrular.
+            - name: Pack schema regression test
+              run: npm run test:pack-schema
+
             - name: Upload dist
               uses: actions/upload-artifact@v4
               with:
