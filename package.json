@@ -1,31 +1,80 @@
 {
 	"name": "partial-uploader",
-	"version": "0.0.8",
-	"description": "",
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
+	"version": "0.1.0",
+	"description": "Chunked/resumable file uploader for the browser: progress, abort, concurrency, token refresh and retry built in.",
+	"main": "./dist/cjs/index.js",
+	"module": "./dist/esm/index.js",
+	"types": "./dist/esm/index.d.ts",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/esm/index.d.ts",
+				"default": "./dist/esm/index.js"
+			},
+			"require": {
+				"types": "./dist/cjs/index.d.ts",
+				"default": "./dist/cjs/index.js"
+			}
+		},
+		"./package.json": "./package.json"
+	},
+	"sideEffects": false,
 	"files": [
-		"/dist"
+		"dist",
+		"src",
+		"!src/**/*.test.ts"
 	],
+	"engines": {
+		"node": ">=18"
+	},
 	"scripts": {
-		"build": "tsc src/index.ts",
-		"test": "vitest run"
+		"build": "node scripts/build.mjs",
+		"clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+		"typecheck": "tsc -p tsconfig.json",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"verify:package": "npm run build && node scripts/verify-package.mjs",
+		"ci": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run verify:package",
+		"prepublishOnly": "npm run ci"
 	},
 	"author": "Yusuf Unal <theunal9@gmail.com> (https://github.com/theunal)",
 	"license": "MIT",
-	"repository": "https://github.com/theunal/partial-uploader",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/theunal/partial-uploader.git"
+	},
 	"bugs": {
 		"url": "https://github.com/theunal/partial-uploader/issues"
 	},
 	"homepage": "https://github.com/theunal/partial-uploader#readme",
 	"keywords": [
 		"chunk",
+		"chunked",
 		"file",
-		"upload"
+		"upload",
+		"resumable",
+		"multipart",
+		"browser",
+		"progress",
+		"abort",
+		"typescript"
 	],
 	"devDependencies": {
+		"@eslint/js": "^9.39.1",
+		"@vitest/coverage-v8": "^4.0.17",
+		"eslint": "^9.39.1",
 		"happy-dom": "^20.3.4",
+		"prettier": "^3.6.2",
 		"typescript": "^5.1.3",
+		"typescript-eslint": "^8.46.3",
 		"vitest": "^4.0.17"
+	},
+	"allowScripts": {
+		"esbuild@0.27.2": true
 	}
 }

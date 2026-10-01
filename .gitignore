@@ -1,1 +1,19 @@
 node_modules
+dist
+coverage
+*.tsbuildinfo
+
+# Ortam dosyaları
+.env
+.env.*
+!.env.example
+
+# Editör / işletim sistemi
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+
+# Loglar
+*.log
+npm-debug.log*
